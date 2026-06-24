@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Calculadora de Productividad</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, 'Segoe UI', sans-serif;
+    background: #f0f4f8;
+    color: #1a202c;
+    padding: 16px;
+    padding-bottom: 40px;
+  }
+
+  h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 2px;
+  }
+  .subtitle {
+    font-size: 0.8rem;
+    color: #718096;
+    margin-bottom: 20px;
+  }
+
+  /* ── INPUT GRID: 2 columnas en móvil ── */
+  .grid-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .input-card {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 12px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .input-card label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #718096;
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+  }
+
+  /* font-size: 16px evita autozoom en iOS */
+  .input-card input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #2d3748;
+    outline: none;
+    transition: border-color 0.2s;
+    background: #fff;
+    -webkit-appearance: none;
+  }
+  .input-card input[type="text"]:focus { border-color: #4a90d9; }
+
+  /* Campo T con % pegado */
+  .input-suffix-wrap {
+    display: inline-flex;
+    align-items: center;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    padding: 10px 10px 10px 12px;
+    transition: border-color 0.2s;
+    cursor: text;
+    width: 100%;
+  }
+  .input-suffix-wrap:focus-within { border-color: #4a90d9; }
+  .ceditable {
+    outline: none;
+    min-width: 10px;
+    font-size: 16px;
+    color: #2d3748;
+    background: transparent;
+    white-space: nowrap;
+    flex: 1;
+  }
+  .input-suffix {
+    font-size: 16px;
+    color: #718096;
+    user-select: none;
+    margin-left: 2px;
+  }
+
+  /* ── DELTA GLOBAL ── */
+  .delta-global {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border-radius: 12px;
+    padding: 13px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin-bottom: 12px;
+    font-size: 0.82rem;
+    color: #4a5568;
+    font-weight: 600;
+  }
+  .delta-global input {
+    width: 56px;
+    padding: 8px 6px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #2d3748;
+    outline: none;
+    text-align: center;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .delta-global input:focus { border-color: #4a90d9; }
+  .delta-global .pct-label { color: #718096; font-weight: 400; }
+
+  /* ── BOTÓN ── */
+  .btn-calc {
+    width: 100%;
+    padding: 15px;
+    background: #4a90d9;
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background 0.15s;
+    -webkit-appearance: none;
+    letter-spacing: 0.05em;
+  }
+  .btn-calc:active { background: #2c6fad; }
+
+  /* ── RESULTADO PRINCIPAL ── */
+  .result-main {
+    background: linear-gradient(135deg, #4a90d9, #3178c6);
+    color: white;
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .result-main .label { font-size: 0.8rem; opacity: 0.85; margin-bottom: 2px; }
+  .result-main .value { font-size: 2.6rem; font-weight: 800; line-height: 1.1; }
+  .result-main .unit  { font-size: 0.8rem; opacity: 0.75; margin-top: 2px; }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #718096;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    margin-top: 4px;
+  }
+
+  /* ── SENSIBILIDAD ── */
+  .sensitivity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .sens-card {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sens-badge {
+    font-size: 0.9rem;
+    font-weight: 800;
+    min-width: 60px;
+    text-align: center;
+    padding: 6px 6px;
+    border-radius: 8px;
+    white-space: nowrap;
+  }
+  .badge-pos { background: #c6f6d5; color: #276749; }
+  .badge-neg { background: #fed7d7; color: #9b2c2c; }
+  .sens-info .var  { font-size: 0.75rem; font-weight: 700; color: #4a5568; }
+  .sens-info .desc { font-size: 0.68rem; color: #a0aec0; margin-top: 1px; }
+
+  /* ── UMBRALES ── */
+  .insight-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+  .insight-card {
+    background: white;
+    border-radius: 12px;
+    padding: 13px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    border-left: 4px solid #e2e8f0;
+  }
+  .insight-card.lote  { border-color: #f6ad55; }
+  .insight-card.setup { border-color: #68d391; }
+  .insight-card.vel   { border-color: #76e4f7; }
+  .insight-card .ins-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #718096;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .insight-card .ins-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #2d3748;
+    margin-bottom: 4px;
+  }
+  .insight-card .ins-desc {
+    font-size: 0.75rem;
+    color: #718096;
+    line-height: 1.5;
+  }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<h1>Calculadora de Productividad</h1>
+<p class="subtitle">Por Sergio Anfossi, MSc - jun 2026</p>
+
+<div class="grid-inputs">
+  <div class="input-card">
+    <label>Tamaño de lote (m)</label>
+    <input type="text" id="L" value="5.000" inputmode="numeric" placeholder="ej: 5.000" onblur="formatearL()">
+  </div>
+  <div class="input-card">
+    <label>Tiempo de setup (h)</label>
+    <input type="text" id="S" value="0,5" inputmode="decimal" placeholder="ej: 0,5">
+  </div>
+  <div class="input-card">
+    <label>Velocidad de marcha (m/min)</label>
+    <input type="text" id="V" value="150" inputmode="numeric" placeholder="ej: 150">
+  </div>
+  <div class="input-card">
+    <label>Tiempo no productivo (%)</label>
+    <div class="input-suffix-wrap">
+      <span contenteditable="true" id="T" class="ceditable" inputmode="decimal">15,0</span><span class="input-suffix">%</span>
+    </div>
+  </div>
+</div>
+
+<div class="delta-global">
+  <span>Δ% sensibilidad:</span>
+  <input type="text" id="delta" value="10" inputmode="numeric">
+  <span class="pct-label">%</span>
+</div>
+
+<button class="btn-calc" onclick="calcular()">CALCULAR</button>
+
+<div id="results" class="hidden">
+
+  <div class="result-main">
+    <div class="label">Productividad calculada</div>
+    <div class="value" id="P_val">—</div>
+    <div class="unit">m / hora</div>
+  </div>
+
+  <div class="section-title">EFECTO DE LA VARIACION DE CADA PARAMETRO SOBRE LA PRODUCTIVIDAD</div>
+  <div class="sensitivity-grid">
+    <div class="sens-card">
+      <div class="sens-badge" id="badge_L">—</div>
+      <div class="sens-info">
+        <div class="var">Δ L (<span id="pct_L"></span>%)</div>
+        <div class="desc">Tamaño de lote</div>
+      </div>
+    </div>
+    <div class="sens-card">
+      <div class="sens-badge" id="badge_S">—</div>
+      <div class="sens-info">
+        <div class="var">Δ S (<span id="pct_S"></span>%)</div>
+        <div class="desc">Tiempo de setup</div>
+      </div>
+    </div>
+    <div class="sens-card">
+      <div class="sens-badge" id="badge_V">—</div>
+      <div class="sens-info">
+        <div class="var">Δ V (<span id="pct_V"></span>%)</div>
+        <div class="desc">Velocidad de marcha</div>
+      </div>
+    </div>
+    <div class="sens-card">
+      <div class="sens-badge" id="badge_T">—</div>
+      <div class="sens-info">
+        <div class="var">Δ T (<span id="pct_T"></span>%)</div>
+        <div class="desc">Tiempo no productivo</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">ANALISIS DE UMBRALES</div>
+  <div class="insight-cards">
+    <div class="insight-card lote">
+      <div class="ins-title">📦 Lote — Rendimiento decreciente</div>
+      <div class="ins-value" id="umbral_L">—</div>
+      <div class="ins-desc" id="desc_L">—</div>
+    </div>
+    <div class="insight-card setup">
+      <div class="ins-title">⏱ Setup — Zona de alta sensibilidad</div>
+      <div class="ins-value" id="umbral_S">—</div>
+      <div class="ins-desc" id="desc_S">—</div>
+    </div>
+    <div class="insight-card vel">
+      <div class="ins-title">⚡ Velocidad — Zona de alta sensibilidad</div>
+      <div class="ins-value" id="umbral_V">—</div>
+      <div class="ins-desc" id="desc_V">—</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function parseCL(str) {
+  return parseFloat(String(str).replace('%','').trim().replace(/\./g, '').replace(',', '.'));
+}
+
+function P(L, S, V, T) {
+  return (L / (S + L / (60 * V))) * (1 - T);
+}
+
+function fmt(num, dec) {
+  if (isNaN(num)) return '—';
+  const neg = num < 0;
+  const abs = Math.abs(num);
+  const factor = Math.pow(10, dec);
+  const rounded = Math.round(abs * factor) / factor;
+  const str = rounded.toFixed(dec);
+  const parts = str.split('.');
+  let intPart = parts[0];
+  let result = '';
+  let count = 0;
+  for (let i = intPart.length - 1; i >= 0; i--) {
+    result = intPart[i] + result;
+    count++;
+    if (count % 3 === 0 && i !== 0) result = '.' + result;
+  }
+  if (dec > 0) result = result + ',' + parts[1];
+  return (neg ? '-' : '') + result;
+}
+
+function formatearL() {
+  const el = document.getElementById('L');
+  const n = parseCL(el.value);
+  if (!isNaN(n) && n > 0) el.value = fmt(n, 0);
+}
+
+function calcular() {
+  const L    = parseCL(document.getElementById('L').value);
+  const S    = parseCL(document.getElementById('S').value);
+  const V    = parseCL(document.getElementById('V').value);
+  const Tpct = parseCL(document.getElementById('T').textContent);
+  const T    = Tpct / 100;
+  const d    = parseCL(document.getElementById('delta').value) / 100;
+  const dL = d, dS = d, dV = d, dT = d;
+
+  if (isNaN(L)||isNaN(S)||isNaN(V)||isNaN(T)||L<=0||S<=0||V<=0||T<0||T>=1) {
+    alert('Por favor ingresa valores válidos en todos los campos.');
+    return;
+  }
+
+  document.getElementById('L').value = fmt(L, 0);
+
+  const p0 = P(L, S, V, T);
+  document.getElementById('P_val').textContent = fmt(p0, 1);
+
+  function sens(newL, newS, newV, newT) {
+    return ((P(newL, newS, newV, newT) - p0) / p0) * 100;
+  }
+
+  const sL = sens(L*(1+dL), S, V, T);
+  const sS = sens(L, S*(1+dS), V, T);
+  const sV = sens(L, S, V*(1+dV), T);
+  const sT = sens(L, S, V, T*(1+dT));
+
+  function setBadge(id, pctId, val, pct) {
+    const el = document.getElementById(id);
+    el.textContent = (val >= 0 ? '+' : '') + fmt(val, 2) + '%';
+    el.className = 'sens-badge ' + (val >= 0 ? 'badge-pos' : 'badge-neg');
+    document.getElementById(pctId).textContent = Math.round(pct * 100);
+  }
+
+  setBadge('badge_L', 'pct_L', sL, dL);
+  setBadge('badge_S', 'pct_S', sS, dS);
+  setBadge('badge_V', 'pct_V', sV, dV);
+  setBadge('badge_T', 'pct_T', sT, dT);
+
+  // UMBRAL L
+  function dPdL(l) { const den = S + l/(60*V); return S/(den*den)*(1-T); }
+  function eL(l)   { return dPdL(l)*l/P(l,S,V,T); }
+  let L_umbral;
+  if (eL(L) <= 0.10) {
+    L_umbral = L;
+  } else {
+    let lo = L, hi = L*200;
+    for (let i=0;i<60;i++) { const m=(lo+hi)/2; eL(m)>0.10?lo=m:hi=m; }
+    L_umbral = (lo+hi)/2;
+  }
+  document.getElementById('umbral_L').textContent = fmt(Math.round(L_umbral), 0) + ' m';
+  const relL = L_umbral / L;
+  document.getElementById('desc_L').textContent = eL(L) <= 0.10
+    ? 'Tu lote actual ya está en zona de bajo retorno marginal. Incrementar el lote produce mejoras mínimas en productividad.'
+    : `A partir de ${fmt(Math.round(L_umbral),0)} m (${fmt(((relL-1)*100),0)}% más que tu lote actual), el beneficio marginal de agrandar el lote cae bajo el 10%. Antes de ese punto, aumentar L tiene impacto significativo.`;
+
+  // UMBRAL S
+  function dPdS(s) { const den = s+L/(60*V); return -L/(den*den)*(1-T); }
+  function eS(s)   { return Math.abs(dPdS(s)*s/P(L,s,V,T)); }
+  let S_umbral;
+  if (eS(S) >= 0.10) {
+    let lo=S, hi=S*100;
+    for (let i=0;i<60;i++) { const m=(lo+hi)/2; eS(m)>=0.10?lo=m:hi=m; }
+    S_umbral = (lo+hi)/2;
+  } else { S_umbral = S; }
+  document.getElementById('umbral_S').textContent = fmt(S_umbral,1)+' h  ('+fmt(S_umbral*60,1)+' min)';
+  document.getElementById('desc_S').textContent = eS(S) >= 0.10
+    ? `Tu setup actual está en zona de ALTA sensibilidad. Reducir el setup impacta significativamente la productividad. Esta zona se extiende hasta ~${fmt(S_umbral,1)} h (${fmt(S_umbral*60,1)} min). Prioriza reducción de setup.`
+    : `Tu setup actual tiene impacto moderado. La zona de alta sensibilidad comienza por debajo de ${fmt(S_umbral,1)} h (${fmt(S_umbral*60,1)} min). Si logras bajar a ese nivel, las mejoras de setup tendrán alto retorno.`;
+
+  // UMBRAL V
+  function dPdV(v) { const den=S+L/(60*v); return (L*L)/(60*v*v*den*den)*(1-T); }
+  function eV(v)   { return dPdV(v)*v/P(L,S,v,T); }
+  let V_umbral;
+  if (eV(V) >= 0.10) {
+    let lo=V, hi=V*50;
+    for (let i=0;i<60;i++) { const m=(lo+hi)/2; eV(m)>=0.10?lo=m:hi=m; }
+    V_umbral = (lo+hi)/2;
+  } else {
+    let lo=0.1, hi=V;
+    for (let i=0;i<60;i++) { const m=(lo+hi)/2; eV(m)>=0.10?lo=m:hi=m; }
+    V_umbral = (lo+hi)/2;
+  }
+  document.getElementById('umbral_V').textContent = fmt(V_umbral,0)+' m/min';
+  document.getElementById('desc_V').textContent = eV(V) >= 0.10
+    ? `Tu velocidad actual está en zona de ALTA sensibilidad. Cada aumento tiene impacto significativo. Esta zona se extiende hasta ~${fmt(V_umbral,0)} m/min. Prioriza aumentar velocidad mientras estés bajo ese valor.`
+    : `Tu velocidad actual tiene bajo retorno marginal. Los esfuerzos son más rentables por debajo de ${fmt(V_umbral,0)} m/min. A tu velocidad actual, otras variables tienen mayor impacto.`;
+
+  document.getElementById('results').classList.remove('hidden');
+  document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
+}
+</script>
+</body>
+</html>
