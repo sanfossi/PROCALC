@@ -12,7 +12,7 @@
     background: #f0f4f8;
     color: #1a202c;
     padding: 16px;
-    padding-bottom: 40px;
+    padding-bottom: 90px;
   }
 
   h1 {
@@ -229,6 +229,28 @@
   }
 
   .hidden { display: none; }
+
+  /* ── BARRA FLOTANTE RECALCULAR ── */
+  .fab-recalc {
+    position: fixed;
+    bottom: 24px;
+    left: 16px;
+    right: 16px;
+    padding: 15px;
+    background: #2d3748;
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    z-index: 999;
+    -webkit-appearance: none;
+    transition: background 0.15s;
+  }
+  .fab-recalc:active { background: #1a202c; }
 </style>
 </head>
 <body>
@@ -325,6 +347,8 @@
   </div>
 
 </div>
+
+<button class="fab-recalc hidden" id="fab" onclick="recalcular()">↑ RECALCULAR</button>
 
 <script>
 function parseCL(str) {
@@ -452,6 +476,11 @@ function calcular() {
 
   document.getElementById('results').classList.remove('hidden');
   document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
+  document.getElementById('fab').classList.remove('hidden');
+}
+
+function recalcular() {
+  window.scrollTo({top: 0, behavior: 'smooth'});
 }
 </script>
 </body>
